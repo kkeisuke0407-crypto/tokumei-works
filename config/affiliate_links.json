@@ -1,5 +1,14 @@
 {
   "disclosure": "広告・アフィリエイトリンクを含みます。",
-  "links": []
+  "links": [
+    {
+      "provider": "A8.net",
+      "program_name": "",
+      "category": "digital_tools_or_learning",
+      "url": "",
+      "placement": "site footer / related product page",
+      "status": "pending_program_approval",
+      "notes": "A8登録完了。提携承認後、広告リンクURLをurlに貼る。SNS掲載可否とリスティング禁止語を案件詳細で確認する。"
+    }
+  ]
 }
-
