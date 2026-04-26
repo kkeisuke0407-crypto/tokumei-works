@@ -98,6 +98,14 @@ h1 {
   gap: 18px;
 }
 
+.article-grid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -126,6 +134,12 @@ h1 {
 }
 
 .summary { color: var(--muted); }
+
+.article-meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
 
 .actions {
   display: flex;
@@ -202,7 +216,8 @@ h1 {
 .footer a { margin-right: 14px; }
 
 @media (max-width: 860px) {
-  .product-grid { grid-template-columns: 1fr; }
+  .product-grid,
+  .article-grid { grid-template-columns: 1fr; }
   .topbar { align-items: flex-start; flex-direction: column; }
   .hero { min-height: 360px; }
 }

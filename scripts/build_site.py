@@ -172,6 +172,14 @@ h1 {
   gap: 18px;
 }
 
+.article-grid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -200,6 +208,12 @@ h1 {
 }
 
 .summary { color: var(--muted); }
+
+.article-meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
 
 .actions {
   display: flex;
@@ -276,7 +290,8 @@ h1 {
 .footer a { margin-right: 14px; }
 
 @media (max-width: 860px) {
-  .product-grid { grid-template-columns: 1fr; }
+  .product-grid,
+  .article-grid { grid-template-columns: 1fr; }
   .topbar { align-items: flex-start; flex-direction: column; }
   .hero { min-height: 360px; }
 }
@@ -320,6 +335,7 @@ gtag('config', '{html.escape(analytics)}');
     <a class="brand" href="{html.escape(root_href)}">{html.escape(brand['name'])}</a>
     <nav class="nav">
       <a href="{html.escape(products_href)}">商品</a>
+      <a href="{html.escape(prefix)}articles/">記事</a>
       <a href="{html.escape(prefix)}disclaimer/">免責</a>
       <a href="{html.escape(prefix)}privacy/">プライバシー</a>
       <a href="{html.escape(prefix)}contact/">問い合わせ</a>
@@ -335,6 +351,20 @@ gtag('config', '{html.escape(analytics)}');
 </body>
 </html>
 """
+
+
+def get_product(products: list[dict[str, Any]], slug: str) -> dict[str, Any]:
+    for product in products:
+        if product["slug"] == slug:
+            return product
+    return products[0]
+
+
+def get_affiliate(affiliate: dict[str, Any], name: str) -> dict[str, Any] | None:
+    for link in affiliate.get("links", []):
+        if link.get("program_name") == name and link.get("status") == "approved":
+            return link
+    return None
 
 
 def render_affiliate_tools(affiliate: dict[str, Any]) -> str:
@@ -372,12 +402,42 @@ def render_affiliate_tools(affiliate: dict[str, Any]) -> str:
 """
 
 
+def render_articles_section(topics: list[dict[str, Any]], products: list[dict[str, Any]]) -> str:
+    cards = []
+    for topic in topics[:6]:
+        product = get_product(products, topic["product_slug"])
+        cards.append(
+            f"""<article class="card">
+  <p class="article-meta">実用メモ</p>
+  <h3>{html.escape(topic['title'])}</h3>
+  <p class="summary">{html.escape(topic['angle'])}</p>
+  <div class="actions">
+    <a class="button" href="articles/{html.escape(topic['slug'])}/">読む</a>
+    <a class="button" href="products/{html.escape(product['slug'])}/">関連商品</a>
+  </div>
+</article>"""
+        )
+
+    return f"""
+<section class="band alt">
+  <div class="section-head">
+    <h2>実用メモ</h2>
+    <p>note販売、匿名発信、SNS投稿導線を小さく改善するための短い記事です。</p>
+  </div>
+  <div class="article-grid">
+    {''.join(cards)}
+  </div>
+</section>
+"""
+
+
 def render_index(
     brand: dict[str, Any],
     rules: dict[str, Any],
     products: list[dict[str, Any]],
     site_url: str,
     affiliate: dict[str, Any],
+    topics: list[dict[str, Any]],
 ) -> str:
     cards = []
     for product in products:
@@ -417,6 +477,7 @@ def render_index(
     {''.join(cards)}
   </div>
 </section>
+{render_articles_section(topics, products)}
 {render_affiliate_tools(affiliate)}
 <section class="band alt">
   <div class="content">
@@ -426,6 +487,98 @@ def render_index(
 </section>
 """
     return page_shell(brand["name"], body, brand)
+
+
+def render_article_index(
+    topics: list[dict[str, Any]],
+    products: list[dict[str, Any]],
+    brand: dict[str, Any],
+) -> str:
+    cards = []
+    for topic in topics:
+        product = get_product(products, topic["product_slug"])
+        cards.append(
+            f"""<article class="card">
+  <p class="article-meta">実用メモ</p>
+  <h3>{html.escape(topic['title'])}</h3>
+  <p class="summary">{html.escape(topic['angle'])}</p>
+  <div class="actions">
+    <a class="button" href="{html.escape(topic['slug'])}/">読む</a>
+    <a class="button" href="../products/{html.escape(product['slug'])}/">関連商品</a>
+  </div>
+</article>"""
+        )
+    body = f"""
+<main class="band">
+  <div class="section-head">
+    <h1>実用メモ</h1>
+    <p>匿名で小さく始めるnote販売、SNS投稿、デジタル商品作成の改善メモです。</p>
+  </div>
+  <div class="article-grid">
+    {''.join(cards)}
+  </div>
+</main>
+"""
+    return page_shell("実用メモ", body, brand, prefix="../")
+
+
+def render_article(
+    topic: dict[str, Any],
+    products: list[dict[str, Any]],
+    affiliate: dict[str, Any],
+    brand: dict[str, Any],
+    rules: dict[str, Any],
+) -> str:
+    product = get_product(products, topic["product_slug"])
+    product_link = product.get("note_url") or f"../../products/{html.escape(product['slug'])}/"
+    affiliate_link = get_affiliate(affiliate, topic.get("affiliate_program", ""))
+    affiliate_block = ""
+    if affiliate_link:
+        pixel = ""
+        if affiliate_link.get("impression_pixel"):
+            pixel = (
+                f'<img border="0" width="1" height="1" src="{html.escape(affiliate_link["impression_pixel"])}" '
+                'alt="" loading="lazy">'
+            )
+        affiliate_block = f"""
+    <h2>制作補助ツール</h2>
+    <p>動画編集や画面録画をまとめて扱いたい場合は、{html.escape(affiliate_link['program_name'])} のような制作補助ツールも選択肢になります。必要な機能が合うか、公式情報を確認してから検討してください。</p>
+    <p><a class="button" href="{html.escape(affiliate_link['url'])}" rel="nofollow sponsored">{html.escape(affiliate_link.get('text', affiliate_link['program_name']))}</a>{pixel}</p>
+"""
+
+    body = f"""
+<main class="band">
+  <article class="content">
+    <p class="article-meta">実用メモ</p>
+    <h1>{html.escape(topic['title'])}</h1>
+    <p class="lead">{html.escape(topic['angle'])}ためのメモです。</p>
+    <div class="notice">{html.escape(rules['required_disclosure'])}</div>
+    <h2>結論</h2>
+    <p>最初から大きな仕組みを作るより、1つの小さな商品、1つの投稿導線、1つの改善ポイントに絞るほうが動きやすくなります。</p>
+    <h2>まず決めること</h2>
+    <ul>
+      <li>誰に向けるか</li>
+      <li>無料部分でどこまで見せるか</li>
+      <li>有料部分に何を入れるか</li>
+      <li>投稿からどのページへ案内するか</li>
+      <li>今週どの数字だけを見るか</li>
+    </ul>
+    <h2>失敗しやすいところ</h2>
+    <p>成果を急いで強い言葉に寄せると、読者の期待値がずれます。成果保証ではなく、作業時間を短くするテンプレートやチェックリストとして見せるほうが安全です。</p>
+    <h2>今日やること</h2>
+    <ul>
+      <li>見出しを1つだけ改善する</li>
+      <li>X投稿を1本作る</li>
+      <li>リンク先がスマホで読めるか確認する</li>
+    </ul>
+    <h2>関連テンプレート</h2>
+    <p>{html.escape(product['title'])}</p>
+    <p><a class="button primary" href="{html.escape(product_link)}">関連ページを見る</a></p>
+    {affiliate_block}
+  </article>
+</main>
+"""
+    return page_shell(topic["title"], body, brand, topic["angle"], prefix="../../")
 
 
 def render_product(product: dict[str, Any], brand: dict[str, Any], rules: dict[str, Any]) -> str:
@@ -468,7 +621,12 @@ def render_simple_page(title: str, content: str, brand: dict[str, Any]) -> str:
     )
 
 
-def render_feed(brand: dict[str, Any], products: list[dict[str, Any]], site_url: str) -> str:
+def render_feed(
+    brand: dict[str, Any],
+    products: list[dict[str, Any]],
+    topics: list[dict[str, Any]],
+    site_url: str,
+) -> str:
     items = []
     for product in products:
         url = product_url(site_url, product)
@@ -478,6 +636,16 @@ def render_feed(brand: dict[str, Any], products: list[dict[str, Any]], site_url:
   <link>{html.escape(url)}</link>
   <guid>{html.escape(url)}</guid>
   <description>{html.escape(product['summary'])}</description>
+</item>"""
+        )
+    for topic in topics:
+        url = f"{site_url}articles/{topic['slug']}/"
+        items.append(
+            f"""<item>
+  <title>{html.escape(topic['title'])}</title>
+  <link>{html.escape(url)}</link>
+  <guid>{html.escape(url)}</guid>
+  <description>{html.escape(topic['angle'])}</description>
 </item>"""
         )
     return f"""<?xml version="1.0" encoding="UTF-8" ?>
@@ -492,9 +660,10 @@ def render_feed(brand: dict[str, Any], products: list[dict[str, Any]], site_url:
 """
 
 
-def render_sitemap(products: list[dict[str, Any]], site_url: str) -> str:
-    urls = [site_url, f"{site_url}privacy/", f"{site_url}disclaimer/", f"{site_url}contact/"]
+def render_sitemap(products: list[dict[str, Any]], topics: list[dict[str, Any]], site_url: str) -> str:
+    urls = [site_url, f"{site_url}articles/", f"{site_url}privacy/", f"{site_url}disclaimer/", f"{site_url}contact/"]
     urls.extend(product_url(site_url, product) for product in products)
+    urls.extend(f"{site_url}articles/{topic['slug']}/" for topic in topics)
     locs = "".join(f"<url><loc>{html.escape(url)}</loc></url>" for url in urls)
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -508,6 +677,7 @@ def build() -> list[Path]:
     rules = load_json("config", "rules.json")
     products = load_json("data", "products.json")
     affiliate = load_json("config", "affiliate_links.json")
+    topics = load_json("data", "growth_topics.json")
     site_url = configured_site_url(brand)
     site_dir = root_path("site")
     written: list[Path] = []
@@ -516,12 +686,21 @@ def build() -> list[Path]:
     write_text(site_dir / "assets" / "styles.css", css())
     written.append(site_dir / "assets" / "styles.css")
 
-    write_text(site_dir / "index.html", render_index(brand, rules, products, site_url, affiliate))
+    write_text(site_dir / "index.html", render_index(brand, rules, products, site_url, affiliate, topics))
     written.append(site_dir / "index.html")
 
     for product in products:
         path = site_dir / "products" / product["slug"] / "index.html"
         write_text(path, render_product(product, brand, rules))
+        written.append(path)
+
+    article_index = site_dir / "articles" / "index.html"
+    write_text(article_index, render_article_index(topics, products, brand))
+    written.append(article_index)
+
+    for topic in topics:
+        path = site_dir / "articles" / topic["slug"] / "index.html"
+        write_text(path, render_article(topic, products, affiliate, brand, rules))
         written.append(path)
 
     privacy = """
@@ -541,8 +720,8 @@ def build() -> list[Path]:
     write_text(site_dir / "privacy" / "index.html", render_simple_page("プライバシーポリシー", privacy, brand))
     write_text(site_dir / "disclaimer" / "index.html", render_simple_page("免責事項", disclaimer, brand))
     write_text(site_dir / "contact" / "index.html", render_simple_page("問い合わせ", contact, brand))
-    write_text(site_dir / "feed.xml", render_feed(brand, products, site_url))
-    write_text(site_dir / "sitemap.xml", render_sitemap(products, site_url))
+    write_text(site_dir / "feed.xml", render_feed(brand, products, topics, site_url))
+    write_text(site_dir / "sitemap.xml", render_sitemap(products, topics, site_url))
     write_text(site_dir / "robots.txt", "User-agent: *\nAllow: /\nSitemap: " + site_url + "sitemap.xml\n")
     written.extend(
         [
