@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from generate_note_drafts import generate as generate_note_drafts
+from generate_growth_pack import generate as generate_growth_pack
 from build_site import build as build_site
 from export_social_queue import export as export_social_queue
 from validate_content import validate
@@ -11,6 +12,7 @@ def main() -> None:
     note_paths = generate_note_drafts()
     site_paths = build_site()
     social_csv, x_json = export_social_queue()
+    growth_paths = generate_growth_pack()
     problems = validate()
     if problems:
         for problem in problems:
@@ -33,8 +35,10 @@ def main() -> None:
     print("Generated social queue:")
     print(" -", social_csv.relative_to(root_path()))
     print(" -", x_json.relative_to(root_path()))
+    print("Generated growth pack:")
+    for path in growth_paths:
+        print(" -", path.relative_to(root_path()))
 
 
 if __name__ == "__main__":
     main()
-
