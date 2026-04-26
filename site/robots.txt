@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://example.github.io/anonymous-monetization-kit/sitemap.xml
+Sitemap: https://fuji0407wave7373-afk.github.io/tokumei-works/sitemap.xml
