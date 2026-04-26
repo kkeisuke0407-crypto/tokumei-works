@@ -1,6 +1,9 @@
 name: Auto Build Monetization Site
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
     - cron: "15 0 * * *"
@@ -47,4 +50,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
