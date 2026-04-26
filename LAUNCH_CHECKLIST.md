@@ -43,6 +43,8 @@
 初期はAPI自動投稿ではなく、投稿キューを使います。
 
 - [ ] XプロフィールにGitHub PagesまたはnoteプロフィールURLを置く
+- [ ] XプロフィールURL: `https://x.com/tokumei_works`
+- [ ] 最初はnote記事URLをプロフィールに置く
 - [ ] Instagramを必要ならプロアカウントへ切り替える
 - [ ] YouTube Shorts用にチャンネル概要へリンクを置く
 - [ ] `dist/social_queue.csv` を見て投稿する
@@ -60,4 +62,3 @@
 - AI APIを使う場合は月3,000円上限
 - 広告は初回販売が出るまで使わない
 - X APIやSNS自動投稿ツールは、販売導線が当たってから検討
-

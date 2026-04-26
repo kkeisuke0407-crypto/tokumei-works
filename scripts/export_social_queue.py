@@ -18,6 +18,10 @@ def x_text(product: dict, url: str, n: int) -> str:
     return patterns[n % len(patterns)]
 
 
+def x_profile_url(brand: dict) -> str:
+    return brand.get("x_url", "").strip()
+
+
 def instagram_text(product: dict, url: str, n: int) -> str:
     patterns = [
         f"匿名で始める小さな収益化\\n\\n1. テーマを決める\\n2. 扱わない話題を決める\\n3. 最初の商品を1つ作る\\n4. 投稿から販売ページへつなぐ\\n\\n{product['title']}\\n{url}",
@@ -45,6 +49,7 @@ def export() -> tuple[Path, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = out_dir / "social_queue.csv"
     x_json_path = out_dir / "x_intents.json"
+    profile_url = x_profile_url(brand)
 
     rows = []
     intents = []
@@ -67,6 +72,7 @@ def export() -> tuple[Path, Path]:
                         "product_slug": product["slug"],
                         "text": text,
                         "intent_url": "https://twitter.com/intent/tweet?text=" + quote(text),
+                        "profile_url": profile_url,
                     }
                 )
             elif platform == "Instagram":
@@ -82,13 +88,23 @@ def export() -> tuple[Path, Path]:
                     "url": url,
                     "asset": "site/assets/hero.png",
                     "status": "draft",
+                    "profile_url": profile_url,
                 }
             )
 
     with csv_path.open("w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["scheduled_date", "platform", "product_slug", "text", "url", "asset", "status"],
+            fieldnames=[
+                "scheduled_date",
+                "platform",
+                "product_slug",
+                "text",
+                "url",
+                "asset",
+                "status",
+                "profile_url",
+            ],
         )
         writer.writeheader()
         writer.writerows(rows)
