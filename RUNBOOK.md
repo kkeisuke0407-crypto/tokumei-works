@@ -29,6 +29,16 @@ python scripts/run_all.py
 9. `dist/social_queue.csv` からSNS投稿を予約
 10. 週1回、売れたテーマを増補する
 
+## 現在の広告リンク
+
+VideoProc:
+
+```text
+https://px.a8.net/svt/ejp?a8mat=4B1U9X+2NUTY2+428G+BX3J6
+```
+
+掲載位置はトップページの「制作補助ツール」です。
+
 ## X初期設定
 
 プロフィールURL:

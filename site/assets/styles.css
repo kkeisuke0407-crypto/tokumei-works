@@ -175,6 +175,23 @@ h1 {
   margin: 20px 0;
 }
 
+.tool-list {
+  max-width: 840px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.tool-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 18px;
+}
+
+.tool-item h3 { margin: 0 0 8px; }
+.tool-item p { margin: 0 0 12px; color: var(--muted); }
+
 .footer {
   border-top: 1px solid var(--line);
   padding: 28px clamp(18px, 4vw, 56px);

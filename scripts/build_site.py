@@ -249,6 +249,23 @@ h1 {
   margin: 20px 0;
 }
 
+.tool-list {
+  max-width: 840px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.tool-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 18px;
+}
+
+.tool-item h3 { margin: 0 0 8px; }
+.tool-item p { margin: 0 0 12px; color: var(--muted); }
+
 .footer {
   border-top: 1px solid var(--line);
   padding: 28px clamp(18px, 4vw, 56px);
@@ -320,7 +337,48 @@ gtag('config', '{html.escape(analytics)}');
 """
 
 
-def render_index(brand: dict[str, Any], rules: dict[str, Any], products: list[dict[str, Any]], site_url: str) -> str:
+def render_affiliate_tools(affiliate: dict[str, Any]) -> str:
+    links = [item for item in affiliate.get("links", []) if item.get("status") == "approved" and item.get("url")]
+    if not links:
+        return ""
+
+    items = []
+    for item in links:
+        pixel = ""
+        if item.get("impression_pixel"):
+            pixel = (
+                f'<img border="0" width="1" height="1" src="{html.escape(item["impression_pixel"])}" '
+                'alt="" loading="lazy">'
+            )
+        items.append(
+            f"""<article class="tool-item">
+  <h3>{html.escape(item.get('program_name', '制作補助ツール'))}</h3>
+  <p>動画編集や画面録画をまとめて扱いたい場合は、制作補助ツールの選択肢になります。必要な機能が合うか、公式情報を確認してから検討してください。</p>
+  <a class="button" href="{html.escape(item['url'])}" rel="nofollow sponsored">{html.escape(item.get('text', item.get('program_name', '詳細を見る')))}</a>
+  {pixel}
+</article>"""
+        )
+
+    return f"""
+<section class="band">
+  <div class="section-head">
+    <h2>制作補助ツール</h2>
+    <p>{html.escape(affiliate.get('disclosure', '広告・アフィリエイトリンクを含みます。'))}</p>
+  </div>
+  <div class="tool-list">
+    {''.join(items)}
+  </div>
+</section>
+"""
+
+
+def render_index(
+    brand: dict[str, Any],
+    rules: dict[str, Any],
+    products: list[dict[str, Any]],
+    site_url: str,
+    affiliate: dict[str, Any],
+) -> str:
     cards = []
     for product in products:
         detail_url = f"products/{product['slug']}/"
@@ -359,6 +417,7 @@ def render_index(brand: dict[str, Any], rules: dict[str, Any], products: list[di
     {''.join(cards)}
   </div>
 </section>
+{render_affiliate_tools(affiliate)}
 <section class="band alt">
   <div class="content">
     <h2>運用方針</h2>
@@ -448,6 +507,7 @@ def build() -> list[Path]:
     brand = load_json("config", "brand.json")
     rules = load_json("config", "rules.json")
     products = load_json("data", "products.json")
+    affiliate = load_json("config", "affiliate_links.json")
     site_url = configured_site_url(brand)
     site_dir = root_path("site")
     written: list[Path] = []
@@ -456,7 +516,7 @@ def build() -> list[Path]:
     write_text(site_dir / "assets" / "styles.css", css())
     written.append(site_dir / "assets" / "styles.css")
 
-    write_text(site_dir / "index.html", render_index(brand, rules, products, site_url))
+    write_text(site_dir / "index.html", render_index(brand, rules, products, site_url, affiliate))
     written.append(site_dir / "index.html")
 
     for product in products:
