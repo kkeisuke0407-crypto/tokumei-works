@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://fuji0407wave7373-afk.github.io/tokumei-works/sitemap.xml
+Sitemap: https://kkeisuke0407-crypto.github.io/tokumei-works/sitemap.xml
